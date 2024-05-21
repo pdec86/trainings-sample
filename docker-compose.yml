@@ -1,0 +1,47 @@
+services:
+  szkolenia-db:
+    container_name: szkolenia-db-c
+    image: mysql:8.0.36
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=pass
+      - MYSQL_DATABASE=simpleDb
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+    ports:
+      - 3307:3306
+    networks:
+      - szkolenia-network
+
+  szkolenia-php:
+    container_name: szkolenia-php-c
+    image: szkolenia-php:rc1
+    build:
+      context: .
+      dockerfile: DockerPHP/Dockerfile
+      target: dev-build
+    restart: always
+    volumes:
+      - './app:/var/www/html:rw'
+    networks:
+      - szkolenia-network
+
+  szkolenia-nginx:
+    container_name: szkolenia-nginx-c
+    image: szkolenia-nginx:rc1
+    build:
+      context: .
+      dockerfile: DockerNginx/Dockerfile
+    restart: always
+    ports:
+      - 127.0.0.1:80:80
+    volumes:
+      - './app:/var/www/html:ro'
+      - './DockerNginx/vhosts/php.conf:/opt/bitnami/nginx/conf/server_blocks/factory.conf:ro'
+    networks:
+      - szkolenia-network
+    depends_on:
+      - szkolenia-php
+
+networks:
+  szkolenia-network:

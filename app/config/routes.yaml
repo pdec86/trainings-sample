@@ -1,0 +1,5 @@
+controllers:
+    resource:
+        path: ../src/Trainings/Infrastructure/Controller/
+        namespace: App\Trainings\Infrastructure\Controller
+    type: attribute
