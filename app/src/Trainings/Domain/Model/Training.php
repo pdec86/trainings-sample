@@ -2,12 +2,14 @@
 
 namespace App\Trainings\Domain\Model;
 
+use App\Trainings\Domain\Model\Exceptions\NameEmptyException;
+use App\Trainings\Domain\Model\Exceptions\NameTooLongException;
 use App\Trainings\Infrastructure\Repository\TrainingRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Table(name: 'app_training', schema: 'simpleDb')]
+#[ORM\Table(name: 'app_training')]
 #[ORM\Entity(repositoryClass: TrainingRepository::class)]
 class Training
 {
@@ -29,18 +31,29 @@ class Training
     #[ORM\OneToMany(targetEntity: TrainingTerm::class, mappedBy: 'training', cascade: ['refresh', 'persist', 'remove'])]
     private Collection $trainingTerm;
 
+    protected function __construct()
+    {
+        $this->trainingTerm = new ArrayCollection();
+    }
+
     /**
      * @param string $name Training name.
      * @param Lecturer $lecturer Lecturer who will lead the training.
      * @param \DateTimeImmutable $dateTime Date and time of the training term.
      * @param string $price Price of the training.
      */
-    public function __construct(string $name, Lecturer $lecturer, \DateTimeImmutable $dateTime, string $price)
-    {
-        $this->changeName($name);
-        $this->lecturer = $lecturer;
-        $this->trainingTerm = new ArrayCollection();
-        $this->trainingTerm->add(new TrainingTerm($this, $dateTime, $price));
+    public static function createWithSingleTerm(
+        string $name,
+        Lecturer $lecturer,
+        \DateTimeImmutable $dateTime,
+        string $price
+    ): self {
+        $training = new self();
+        $training->changeName($name);
+        $training->lecturer = $lecturer;
+        $training->trainingTerm->add(new TrainingTerm($training, $dateTime, $price));
+
+        return $training;
     }
 
     public function getId(): string
@@ -51,10 +64,10 @@ class Training
     public function changeName(string $name): void
     {
         if (mb_strlen($name) > 512) {
-            throw new \DomainException('Provided name is too long');
+            throw new NameTooLongException('Provided name is too long');
         }
         if (mb_strlen($name) == 0) {
-            throw new \DomainException('Provided name is empty');
+            throw new NameEmptyException('Provided name is empty');
         }
 
         $this->name = $name;
@@ -84,7 +97,7 @@ class Training
             }
         }
 
-        throw new \DomainException('Invalid training term ID provided');
+        throw new \LogicException('Invalid training term ID provided');
     }
 
     public function changePrice(string $trainingTermId, string $price): void
@@ -96,7 +109,7 @@ class Training
             }
         }
 
-        throw new \DomainException('Invalid training term ID provided');
+        throw new \LogicException('Invalid training term ID provided');
     }
 
     public function getTrainingTerms(): array

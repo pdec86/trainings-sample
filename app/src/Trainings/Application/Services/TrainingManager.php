@@ -2,8 +2,10 @@
 
 namespace App\Trainings\Application\Services;
 
-use App\Trainings\Application\Mappers\MapTrainingToDTO;
-use App\Trainings\Application\Payload\TrainingDTO;
+use App\Trainings\Application\Payload\CreateTrainingPayload;
+use App\Trainings\Application\Payload\UpdateTrainingPayload;
+use App\Trainings\Domain\Mappers\MapTrainingToDTO;
+use App\Trainings\Domain\Model\DTO\TrainingDTO;
 use App\Trainings\Domain\Model\Training;
 use App\Trainings\Domain\Services\CreateTrainingService;
 use App\Trainings\Domain\Services\UpdateTrainingService;
@@ -16,35 +18,34 @@ class TrainingManager
         private readonly ManagerRegistry $doctrine,
         private readonly CreateTrainingService $createTrainingService,
         private readonly UpdateTrainingService $updateTrainingService,
-        private readonly MapTrainingToDTO $mapTrainingToDTO,
+        private readonly MapTrainingToDTO $trainingMapper,
     )
     {
     }
 
-    public function createTraining(TrainingDTO $trainingDTO): void
+    public function createTraining(CreateTrainingPayload $payload): TrainingDTO
     {
-        $this->createTrainingService->execute(
-            $trainingDTO->getName(),
-            $trainingDTO->getLecturerFirstName(),
-            $trainingDTO->getLecturerLastName(),
-            new \DateTimeImmutable($trainingDTO->getDateAndTime()),
-            $trainingDTO->getPrice()
+        $training = $this->createTrainingService->execute(
+            $payload->name,
+            $payload->lecturerId,
+            $payload->dateAndTime,
+            $payload->price
         );
+
+        return $this->trainingMapper->mapToDTO($training);
     }
 
     public function updateTraining(
         string $trainingId,
-        TrainingDTO $trainingDTO
-    ): void {
-        $this->updateTrainingService->execute(
+        UpdateTrainingPayload $payload
+    ): TrainingDTO {
+        $training = $this->updateTrainingService->execute(
             $trainingId,
-            $trainingDTO->getName(),
-            $trainingDTO->getLecturerFirstName(),
-            $trainingDTO->getLecturerLastName(),
-            $trainingDTO->getTrainingTermId(),
-            new \DateTimeImmutable($trainingDTO->getDateAndTime()),
-            $trainingDTO->getPrice()
+            $payload->name,
+            $payload->lecturerId,
         );
+
+        return $this->trainingMapper->mapToDTO($training);
     }
 
     public function getTraining(
@@ -59,7 +60,7 @@ class TrainingManager
             throw new \RuntimeException('Training not found');
         }
 
-        return $this->mapTrainingToDTO->mapToDTO($training);
+        return $this->trainingMapper->mapToDTO($training);
     }
 
     /**
@@ -81,7 +82,7 @@ class TrainingManager
         /** @var Training[] $trainings */
         $trainings = $trainingRepository->fetchList($trainingName, $trainingLecturer, $trainingTermDate);
 
-        return array_map([$this->mapTrainingToDTO, 'mapToDTO'], $trainings);
+        return array_map([$this->trainingMapper, 'mapToDTO'], $trainings);
     }
 
     public function getTrainingCount(string $date): int

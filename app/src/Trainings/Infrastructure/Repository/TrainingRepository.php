@@ -54,4 +54,19 @@ class TrainingRepository extends EntityRepository
 
         return $queryBuilder->getQuery()->getSingleScalarResult();
     }
+
+    public function fetchListByLecturer(string $trainingLecturerId): array
+    {
+        $queryBuilder = $this->createQueryBuilder('training');
+        $expr = $queryBuilder->expr();
+
+        $queryBuilder->select('training, terms')
+            ->innerJoin('training.trainingTerm', 'terms')
+            ->innerJoin('training.lecturer', 'lecturer');
+
+        $queryBuilder->andWhere($expr->eq('lecturer.id', ':lecturerId'),);
+        $queryBuilder->setParameter('lecturerId', $trainingLecturerId);
+
+        return $queryBuilder->getQuery()->getResult();
+    }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Tests\Trainings\Domain\Model;
 
+use App\Trainings\Domain\Model\Exceptions\NameEmptyException;
+use App\Trainings\Domain\Model\Exceptions\NameTooLongException;
 use App\Trainings\Domain\Model\Lecturer;
 use App\Trainings\Domain\Model\Training;
 use PHPUnit\Framework\TestCase;
@@ -13,7 +15,7 @@ class TrainingTest extends TestCase
 
     public function testMaxNameExceeded()
     {
-        self::expectException(\DomainException::class);
+        self::expectException(NameTooLongException::class);
         self::expectExceptionMessage('Provided name is too long');
 
         $clock = static::mockTime('2022-01-10 15:20:00');
@@ -24,7 +26,7 @@ class TrainingTest extends TestCase
         }
 
         self::assertEquals(513, strlen($name));
-        new Training(
+        Training::createWithSingleTerm(
             $name,
             new Lecturer('Jan', 'Kowalski'),
             new \DateTimeImmutable('2022-01-10 15:21:00'),
@@ -34,12 +36,12 @@ class TrainingTest extends TestCase
 
     public function testNameEmpty()
     {
-        self::expectException(\DomainException::class);
+        self::expectException(NameEmptyException::class);
         self::expectExceptionMessage('Provided name is empty');
 
         $clock = static::mockTime('2022-01-10 15:20:00');
 
-        new Training(
+        Training::createWithSingleTerm(
             '',
             new Lecturer('Jan', 'Kowalski'),
             new \DateTimeImmutable('2022-01-10 15:21:00'),
@@ -58,7 +60,7 @@ class TrainingTest extends TestCase
         $name .= 'Ł';
 
         self::assertEquals(512, mb_strlen($name));
-        $training = new Training(
+        $training = Training::createWithSingleTerm(
             $name,
             new Lecturer('Jan', 'Kowalski'),
             new \DateTimeImmutable('2022-01-10 15:21:00'),

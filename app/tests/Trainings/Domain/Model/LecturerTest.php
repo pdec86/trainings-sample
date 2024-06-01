@@ -2,6 +2,8 @@
 
 namespace App\Tests\Trainings\Domain\Model;
 
+use App\Trainings\Domain\Model\Exceptions\NameEmptyException;
+use App\Trainings\Domain\Model\Exceptions\NameTooLongException;
 use App\Trainings\Domain\Model\Lecturer;
 use PHPUnit\Framework\TestCase;
 
@@ -9,7 +11,7 @@ class LecturerTest extends TestCase
 {
     public function testFirstNameTooLong()
     {
-        self::expectException(\DomainException::class);
+        self::expectException(NameTooLongException::class);
         self::expectExceptionMessage('Provided first name is too long');
 
         $name = '';
@@ -22,7 +24,7 @@ class LecturerTest extends TestCase
 
     public function testLastNameTooLong()
     {
-        self::expectException(\DomainException::class);
+        self::expectException(NameTooLongException::class);
         self::expectExceptionMessage('Provided last name is too long');
 
         $name = '';
@@ -35,7 +37,7 @@ class LecturerTest extends TestCase
 
     public function testFirstNameEmpty()
     {
-        self::expectException(\DomainException::class);
+        self::expectException(NameEmptyException::class);
         self::expectExceptionMessage('Provided first name is empty');
 
         $name = '';
@@ -48,7 +50,7 @@ class LecturerTest extends TestCase
 
     public function testLastNameEmpty()
     {
-        self::expectException(\DomainException::class);
+        self::expectException(NameEmptyException::class);
         self::expectExceptionMessage('Provided last name is empty');
 
         $name = '';

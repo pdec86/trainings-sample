@@ -2,10 +2,13 @@
 
 namespace App\Trainings\Domain\Model;
 
+use App\Trainings\Domain\Interfaces\CalculateRebateServiceInterface;
+use App\Trainings\Domain\Model\Exceptions\DateTimeInPastException;
+use App\Trainings\Domain\Model\Exceptions\InvalidPriceException;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Clock\ClockAwareTrait;
 
-#[ORM\Table(name: 'app_training_term', schema: 'simpleDb')]
+#[ORM\Table(name: 'app_training_term')]
 #[ORM\Entity()]
 class TrainingTerm
 {
@@ -14,7 +17,7 @@ class TrainingTerm
     #[ORM\Column(name: 'id', type: 'bigint')]
     #[ORM\GeneratedValue()]
     #[ORM\Id]
-    private string $id;
+    private ?string $id = null;
 
     #[ORM\Column(name: 'dateAndTime', type: "datetime_immutable")]
     private \DateTimeImmutable $dateTime;
@@ -38,7 +41,7 @@ class TrainingTerm
         $this->changePrice($price);
     }
 
-    public function getId(): string
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -51,25 +54,25 @@ class TrainingTerm
     public function changeDateAndTime(\DateTimeImmutable $dateTime): void
     {
         if ($dateTime < $this->now()) {
-            throw new \DomainException('Date and time in past. Must be in future');
+            throw new DateTimeInPastException('Date and time in past. Must be in future');
         }
 
         $this->dateTime = $dateTime;
     }
 
-    public function getPrice(): string
+    public function getPrice(CalculateRebateServiceInterface $rebateService = null): string
     {
-        return $this->price;
+        return null == $rebateService ? $this->price : $rebateService->getPriceAfterRebate($this);
     }
 
     public function changePrice(string $price): void
     {
-        if (!preg_match('/^\d+(\.\d+)?$/', $price)) {
-            throw new \DomainException('Invalid price provided');
+        if (!preg_match('/^-?\d+(\.\d+)?$/', $price)) {
+            throw new InvalidPriceException('Invalid price provided');
         }
 
         if (\bccomp($price, '0.00', 2) < 0) {
-            throw new \DomainException('Price must be greater or equal 0');
+            throw new InvalidPriceException('Price must be greater or equal 0');
         }
 
         $this->price = $price;

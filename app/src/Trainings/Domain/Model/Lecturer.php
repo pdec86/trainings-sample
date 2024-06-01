@@ -2,9 +2,11 @@
 
 namespace App\Trainings\Domain\Model;
 
+use App\Trainings\Domain\Model\Exceptions\NameEmptyException;
+use App\Trainings\Domain\Model\Exceptions\NameTooLongException;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Table(name: 'app_lecturer', schema: 'simpleDb')]
+#[ORM\Table(name: 'app_lecturer')]
 #[ORM\Entity()]
 class Lecturer
 {
@@ -25,22 +27,16 @@ class Lecturer
      */
     public function __construct(string $firstName, string $lastName)
     {
-        if (mb_strlen($firstName) > 256) {
-            throw new \DomainException('Provided first name is too long');
-        }
-        if (mb_strlen($firstName) == 0) {
-            throw new \DomainException('Provided first name is empty');
-        }
+        $this->setFirstName($firstName);
+        $this->setLastName($lastName);
+    }
 
-        if (mb_strlen($lastName) > 256) {
-            throw new \DomainException('Provided last name is too long');
-        }
-        if (mb_strlen($lastName) == 0) {
-            throw new \DomainException('Provided last name is empty');
-        }
-
-        $this->firstName = $firstName;
-        $this->lastName = $lastName;
+    /**
+     * @return string
+     */
+    public function getId(): string
+    {
+        return $this->id;
     }
 
     public function getFirstName(): string
@@ -48,8 +44,38 @@ class Lecturer
         return $this->firstName;
     }
 
+    /**
+     * @param string $firstName
+     */
+    public function setFirstName(string $firstName): void
+    {
+        if (mb_strlen($firstName) > 256) {
+            throw new NameTooLongException('Provided first name is too long');
+        }
+        if (mb_strlen($firstName) == 0) {
+            throw new NameEmptyException('Provided first name is empty');
+        }
+
+        $this->firstName = $firstName;
+    }
+
     public function getLastName(): string
     {
         return $this->lastName;
+    }
+
+    /**
+     * @param string $lastName
+     */
+    public function setLastName(string $lastName): void
+    {
+        if (mb_strlen($lastName) > 256) {
+            throw new NameTooLongException('Provided last name is too long');
+        }
+        if (mb_strlen($lastName) == 0) {
+            throw new NameEmptyException('Provided last name is empty');
+        }
+
+        $this->lastName = $lastName;
     }
 }

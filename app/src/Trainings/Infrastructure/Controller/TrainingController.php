@@ -2,7 +2,8 @@
 
 namespace App\Trainings\Infrastructure\Controller;
 
-use App\Trainings\Application\Payload\TrainingDTO;
+use App\Trainings\Application\Payload\CreateTrainingPayload;
+use App\Trainings\Application\Payload\UpdateTrainingPayload;
 use App\Trainings\Application\Services\TrainingManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,6 +13,7 @@ use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
 // TODO: Use specific exceptions and handle specific exception cases in endpoints.
+#[Route(path: '/training')]
 class TrainingController extends AbstractController
 {
     public function __construct(
@@ -41,10 +43,10 @@ class TrainingController extends AbstractController
 
     #[Route(path: '/', methods: ['POST'])]
     public function createTraining(
-        #[MapRequestPayload] TrainingDTO $trainingDTO
+        #[MapRequestPayload] CreateTrainingPayload $payload
     ): Response
     {
-        $this->trainingManager->createTraining($trainingDTO);
+        $this->trainingManager->createTraining($payload);
         return new Response('', Response::HTTP_ACCEPTED);
     }
 
@@ -59,9 +61,9 @@ class TrainingController extends AbstractController
     #[Route(path: '/{trainingId}', methods: ['PATCH'])]
     public function updateTraining(
         string $trainingId,
-        #[MapRequestPayload] TrainingDTO $trainingDTO
+        #[MapRequestPayload] UpdateTrainingPayload $payload
     ): Response {
-        $this->trainingManager->updateTraining($trainingId, $trainingDTO);
+        $this->trainingManager->updateTraining($trainingId, $payload);
         return new Response('', Response::HTTP_ACCEPTED);
     }
 

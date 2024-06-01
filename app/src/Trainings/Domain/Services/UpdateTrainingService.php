@@ -2,9 +2,12 @@
 
 namespace App\Trainings\Domain\Services;
 
+use App\Trainings\Domain\Model\Exceptions\LecturerNotFoundException;
+use App\Trainings\Domain\Model\Exceptions\TrainingNotFoundException;
 use App\Trainings\Domain\Model\Lecturer;
 use App\Trainings\Domain\Model\Training;
 use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -22,12 +25,8 @@ class UpdateTrainingService
     public function execute(
         string $trainingId,
         string $name,
-        string $lecturerFirstName,
-        string $lecturerLastName,
-        ?string $trainingTermId = null,
-        ?\DateTimeImmutable $dateAndTime = null,
-        ?string $price = null
-    ): void {
+        string $lecturerId,
+    ): Training {
         if (!preg_match('/^\d+$/', $trainingId)) {
             throw new \RuntimeException('Invalid training ID');
         }
@@ -40,29 +39,25 @@ class UpdateTrainingService
         $em->getConnection()->beginTransaction();
 
         try {
-            $training = $trainingRepository->findOneBy(['id' => $trainingId]);
+            $training = $trainingRepository->find($trainingId, LockMode::PESSIMISTIC_WRITE);
             if (null === $training) {
-                throw new \RuntimeException('Training not found');
+                throw new TrainingNotFoundException('Training not found');
             }
 
-            $lecturer = $lecturerRepository->findOneBy(['firstName' => $lecturerFirstName, 'lastName' => $lecturerLastName]);
+            $lecturer = $lecturerRepository->find($lecturerId);
             if (null === $lecturer) {
-                $lecturer = new Lecturer($lecturerFirstName, $lecturerLastName);
-                $em->persist($lecturer);
+                throw new LecturerNotFoundException('Lecturer not found');
             }
 
             $training->changeName($name);
             $training->changeLecturer($lecturer);
 
-            if (null !== $trainingTermId) {
-                $training->changeDateAndTime($trainingTermId, $dateAndTime);
-                $training->changePrice($trainingTermId, $price);
-            }
-
             $em->persist($training);
 
             $em->flush();
             $em->getConnection()->commit();
+
+            return $training;
         } catch (\Throwable $throwable) {
             $em->getConnection()->rollBack();
             throw $throwable;

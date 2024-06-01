@@ -7,13 +7,15 @@
 docker compose -f docker-compose.yml up -d --build --force-recreate
 ```
 
-### Run tests
-```shell
-bin/phpunit
-```
-
 ### Inside container execute
 ```shell
 bin/console doctrine:migrations:migrate
 bin/console doctrine:fixtures:load
+```
+
+### Run tests
+```shell
+bin/console doctrine:migrations:migrate --env=test
+bin/console doctrine:fixtures:load --env=test
+bin/phpunit
 ```
