@@ -23,7 +23,7 @@ class CalculateRebateService implements CalculateRebateServiceInterface
 
         return $this->bcround(
             \bcmul(
-                (100 - min(100, $rebate)) / 100,
+                \bcdiv(\bcsub('100', (string) min(100, $rebate), 4), '100', 4),
                 $trainingTerm->getPrice(),
                 4),
             2

@@ -2,7 +2,6 @@
 
 namespace App\Trainings\Domain\Model;
 
-use App\Trainings\Domain\Interfaces\CalculateRebateServiceInterface;
 use App\Trainings\Domain\Model\Exceptions\DateTimeInPastException;
 use App\Trainings\Domain\Model\Exceptions\InvalidPriceException;
 use Doctrine\ORM\Mapping as ORM;
@@ -60,9 +59,9 @@ class TrainingTerm
         $this->dateTime = $dateTime;
     }
 
-    public function getPrice(CalculateRebateServiceInterface $rebateService = null): string
+    public function getPrice(): string
     {
-        return null == $rebateService ? $this->price : $rebateService->getPriceAfterRebate($this);
+        return $this->price;
     }
 
     public function changePrice(string $price): void

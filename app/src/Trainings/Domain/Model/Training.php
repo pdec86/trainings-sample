@@ -112,6 +112,9 @@ class Training
         throw new \LogicException('Invalid training term ID provided');
     }
 
+    /**
+     * @return TrainingTerm[]
+     */
     public function getTrainingTerms(): array
     {
         return $this->trainingTerm->toArray();

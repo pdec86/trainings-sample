@@ -19,7 +19,7 @@ class MapTrainingTermToDTO
         return new TrainingTermDTO(
             $trainingTerm->getId(),
             $trainingTerm->getDateTime()->format('Y-m-d H:i:s'),
-            $trainingTerm->getPrice($this->rebateService)
+            $this->rebateService->getPriceAfterRebate($trainingTerm)
         );
     }
 }
